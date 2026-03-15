@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FODC | Ultra Pro Console</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Fira+Code:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pro_style.css') }}">
+    <!-- Load Socket.IO from CDN -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        window.userRole = "{{ role }}";
+        window.userName = "{{ user }}";
+    </script>
+</head>
+
+<body>
+    <!-- Abstract Background Elements -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <div class="container">
+        <!-- Global Metrics Bar & Admin Panel -->
+        <div class="top-dashboard-row" style="display: flex; gap: 1.5rem; margin-bottom: 2rem;">
+            <!-- Global Metrics Bar -->
+            <div class="global-metrics glass-panel" id="global-metrics" style="flex: 1; margin-bottom: 0;">
+                <div class="metrics-row main-metrics">
+                    <div class="metric"><i data-lucide="cpu" class="icon-primary"></i> <span id="global-cpu">0%</span> CPU
+                    </div>
+                    <div class="metric"><i data-lucide="memory-stick" class="icon-primary"></i> <span
+                            id="global-ram">0%</span> RAM</div>
+                    <div class="metric"><i data-lucide="hard-drive" class="icon-primary"></i> <span
+                            id="global-disk">0%</span> Disk</div>
+                </div>
+                <div class="metrics-row sub-metrics">
+                    <div class="sub-metric">Speed: <span id="cpu-speed">0 GHz</span></div>
+                    <div class="sub-metric">Cores: <span id="cpu-cores">0</span></div>
+                    <div class="sub-metric">Total RAM: <span id="ram-total">0 MB</span></div>
+                </div>
+            </div>
+
+            {% if role == 'admin' %}
+            <!-- Admin Panel Box -->
+            <div class="admin-actions-box glass-panel" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; min-width: 320px; flex: 0.6;">
+                <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="shield-check" class="icon-primary"></i> Admin Panel</h3>
+                <div style="display: flex; gap: 0.5rem; width: 100%;">
+                    <button id="btn-full-backup" class="btn btn-primary" style="flex: 1;" onclick="window.location.href='/api/admin/full_backup'" title="Download Full Backend Backup">
+                        <i data-lucide="database-backup"></i> Full Backup
+                    </button>
+                    <input type="file" id="input-restore-backup" style="display: none;" accept=".zip" onchange="uploadRestoreBackup(this)">
+                    <button id="btn-restore-backup" class="btn btn-warning" style="flex: 1;" onclick="document.getElementById('input-restore-backup').click()" title="Restore from a Zip Upload">
+                        <i data-lucide="upload-cloud"></i> Restore
+                    </button>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.8rem; text-align: center; margin-bottom: 0;">Manage server backups & restoration.</p>
+            </div>
+            
+            <!-- View Instances Box -->
+            <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1.5rem; min-width: 350px; flex: 0.6;">
+                <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--text-main); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="monitor" class="icon-primary"></i> Instance Viewer</h3>
+                <div style="display: flex; gap: 0.5rem; width: 100%;">
+                    <button class="btn btn-outline" style="flex: 1; border-color:var(--primary); color:var(--text-main);" onclick="window.location.href='/instances_view?filter=mine'" title="View Admin Instances">
+                        <i data-lucide="shield"></i> Admin
+                    </button>
+                    <button class="btn btn-outline" style="flex: 1; border-color:var(--primary); color:var(--text-main);" onclick="window.location.href='/instances_view?filter=users'" title="View User Instances">
+                        <i data-lucide="users"></i> User
+                    </button>
+                    <button class="btn btn-outline" style="flex: 1; border-color:var(--primary); color:var(--text-main);" onclick="window.location.href='/instances_view?filter=paid'" title="View Paid User Instances">
+                        <i data-lucide="gem"></i> Paid
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Header -->
+        <header class="glass-header">
+            <div class="logo">
+                <i data-lucide="terminal-square" class="icon-primary"></i>
+                <h1>FODC<span>Console</span></h1>
+            </div>
+            <div class="header-socials" style="display:flex; gap:1rem; align-items:center;">
+                <a href="https://t.me/fatherofbots_its" target="_blank" style="color:var(--primary)" title="Telegram"><i
+                        data-lucide="send"></i></a>
+                <a href="https://www.tiktok.com/@glorybotseller" target="_blank" style="color:var(--text-main)"
+                    title="TikTok"><i data-lucide="video"></i></a>
+                <a href="https://wa.me/8801938687923" target="_blank" style="color:#25D366"
+                    title="WhatsApp (+8801938687923)"><i data-lucide="message-circle"></i></a>
+            </div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <i data-lucide="user"></i>
+                    <span>{{ user }} (<span class="role-text">{{ role }}</span>)</span>
+                </div>
+                {% if role == 'admin' %}
+                <a href="/users_view" class="btn btn-outline" style="margin-right: 0.5rem;"><i data-lucide="users"></i>
+                    Manage Users</a>
+                <a href="/instances_view" class="btn btn-outline" style="margin-right: 0.5rem;"><i
+                        data-lucide="list"></i> View Instances</a>
+                {% endif %}
+                <button id="btn-new-instance" class="btn btn-primary">
+                    <i data-lucide="plus-circle"></i> Create Instance
+                </button>
+                <a href="/logout" class="btn btn-danger" title="Logout" style="padding: 0.8rem; border-radius: 50%;"><i
+                        data-lucide="log-out"></i></a>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main id="instance-grid" class="instance-grid">
+            <!-- Loading State -->
+            <div class="empty-state" id="empty-state">
+                <i data-lucide="server" class="empty-icon"></i>
+                <h2>No Active Instances</h2>
+                <p>Upload a .zip file and spawn a new console instance to begin.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Upload Console Package</h2>
+                <button class="btn-close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="drop-zone" id="drop-zone">
+                    <i data-lucide="file-archive" class="upload-icon"></i>
+                    <p>Drag & Drop your <strong>.zip</strong> file here<br>or <span class="text-primary">browse
+                            files</span></p>
+                    <input type="file" id="file-input" accept=".zip" hidden>
+                </div>
+                <div id="upload-progress" class="progress-bar hidden">
+                    <div class="progress-fill"></div>
+                </div>
+                <p id="upload-status" class="status-text"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spawn Instance Modal -->
+    <div id="spawn-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Spawn New Instance</h2>
+                <button class="btn-close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body form-body">
+                <div class="form-group">
+                    <label>Guild ID</label>
+                    <input type="text" id="guild-id" placeholder="e.g., 3093671669" class="neon-input">
+                </div>
+                <div class="form-group">
+                    <label>Quantity to Create</label>
+                    <input type="number" id="instance-count" value="1" min="1" max="50" class="neon-input">
+                </div>
+                <button id="btn-confirm-spawn" class="btn btn-primary w-100">Spawn Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credentials Modal -->
+    <div id="credentials-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Edit Credentials</h2>
+                <button class="btn-close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body form-body">
+                <p class="status-text" style="color:var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem">
+                    Modify the default UID and Password for <strong id="cred-inst-name"></strong>.
+                </p>
+                <div class="form-group">
+                    <label>UID</label>
+                    <input type="text" id="cred-uid" placeholder="e.g., 4477200071" class="neon-input">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="text" id="cred-pass" placeholder="e.g., fdg_W3H16_BY_MG24_GAMER_F8J2D"
+                        class="neon-input">
+                </div>
+                <input type="hidden" id="cred-inst-id">
+                <button id="btn-save-credentials" class="btn btn-primary w-100">Save Credentials</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>
