@@ -1264,4 +1264,4 @@ if __name__ == '__main__':
 
     # Running on 0.0.0.0 port 5000 for global access
     logger.info("Starting Ultra Pro Console Manager on http://0.0.0.0:5000")
-    socketio.run(app, host='0.0.0.0', port=80, debug=False)
+    socketio.run(app, host='0.0.0.0', port=10000, debug=False)
